@@ -3,7 +3,7 @@ const db = 'data.json';
 let userData = JSON.parse(fs.readFileSync(db));
 let flag = false;
 
-function getResponse(statuscode,message,data) {
+function getResponse(statuscode, message, data) {
 	let res = {
 		statuscode: statuscode,
 		message: message,
@@ -15,53 +15,46 @@ function getResponse(statuscode,message,data) {
 function addUser(data) {
 	const parseData = JSON.parse(data);
 	let msg;
-	userData.forEach(ele => {
+	userData.some(ele => {
 		flag = false;
-		if (ele.id === parseData.id) {
-			msg = 'id already exist..!';
-		} else if (ele.emailid == parseData.emailid) {
-			msg = 'email already exist..!';
-		} else if (ele.mobileno == parseData.mobileno) {
-			msg = 'contact already exist..!';
-		}
 		if (ele.id != parseData.id) {
 			if (ele.emailid != parseData.emailid) {
 				if (ele.mobileno != parseData.mobileno) {
 					flag = true;
 				}
+				else {
+					msg = 'Id already exist..!';
+				}
 			}
-		} 
+			else {
+				msg = 'Email already exist..!';
+			}
+		}
+		else {
+			msg = 'Contact already exist..!';
+		}
 	})
 	if (flag) {
 		userData.push(parseData);
-		fs.writeFile(db, JSON.stringify(userData), function (err) {
-			if (err) throw err;
-		});
-		const giveResponse = 'User added Successfully';
-		let obj = getResponse(200,'Ok',giveResponse);
+		fs.writeFileSync(db, JSON.stringify(userData));
+		const giveResponse = 'User added successfully';
+		let obj = getResponse(200, 'Ok', giveResponse);
 		return JSON.stringify(obj);
 	}
 	else {
-		let obj = getResponse(200,'Ok',msg);
+		let obj = getResponse(200, 'Ok', msg);
 		return JSON.stringify(obj);
 	}
 }
 
 function deleteUser(data) {
-	flag = 0;
-	userData.forEach(ele => {
-		if (ele.id == data) {
-			let index = userData.indexOf(ele);
-			userData.splice(index, 1);
-			flag = 1;
-		}
-	})
+	flag = userData.splice(userData.findIndex(ele => {
+		ele.id == data;
+	}), 1);
 	if (flag) {
-		fs.writeFile(db, JSON.stringify(userData), function (err) {
-			if (err) throw err;
-		});
-		const giveResponse = 'User removed Successfully';
-		let obj = getResponse(200,'Ok',giveResponse);
+		fs.writeFileSync(db, JSON.stringify(userData));
+		const giveResponse = 'User removed successfully';
+		let obj = getResponse(200, 'Ok', giveResponse);
 		return JSON.stringify(obj);
 	}
 }
@@ -75,63 +68,34 @@ function getUser(data) {
 			flag = 1;
 		}
 	})
-	if (flag === 1) {
-		fs.writeFile(db, JSON.stringify(userData), function (err) {
-			if (err) throw err;
-		});
+	if (flag) {
+		fs.writeFileSync(db, JSON.stringify(userData));
 		const giveResponse = getUserById;
-		let obj = getResponse(200,'Ok',giveResponse);
+		let obj = getResponse(200, 'Ok', giveResponse);
 		return JSON.stringify(obj);
 	}
-	
+
 }
 
 function updateUser(data) {
 	const parseData = JSON.parse(data);
-	userData.forEach(ele => {
+	const userKeys = ['name', 'emailid', 'mobileno', 'department', 'age', 'enrollno'];
+	flag = userData.some(ele => {
 		if (ele.id == parseData.id) {
 			Object.keys(parseData).forEach(element => {
-				if (element == 'name') {
-					if (parseData.element !== '') {
-						ele.name = parseData.name;
+				if (userKeys.find((ele) => { if (ele == element) return true; })) {					
+					if (parseData[element] !== '') {
+						ele[element] = parseData[element];
 					}
 				}
-				if (element == 'emailid') {
-					if (parseData.element !== '') {
-						ele.emailid = parseData.emailid;
-					}
-				}
-				if (element == 'mobileno') {
-					if (parseData.element !== '') {
-						ele.mobileno = parseData.mobileno;
-					}
-				}
-				if (element == 'department') {
-					if (parseData.element !== '') {
-						ele.department = parseData.department;
-					}
-				}
-				if (element == 'age') {
-					if (parseData.element !== '') {
-						ele.age = parseData.age;
-					}
-				}
-				if (element == 'enrollno') {
-					if (parseData.element !== '') {
-						ele.enrollno = parseData.enrollno;
-					}
-				}
-			})
-			flag = 1;
+			});
 		}
+		return true;
 	})
-	if (flag === 1) {
-		//awdata.push(parseData);
-		fs.writeFile(db, JSON.stringify(userData), function (err) {
-			if (err) throw err;
-		});
-		const giveResponse = 'User updated Successfully';
-		let obj = getResponse(200,'Ok',giveResponse);
+	if (flag) {
+		fs.writeFileSync(db, JSON.stringify(userData));
+		const giveResponse = 'User updated successfully';
+		let obj = getResponse(200, 'Ok', giveResponse);
 		return JSON.stringify(obj);
 	}
 }
